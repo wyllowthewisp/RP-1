@@ -1,0 +1,46 @@
+//**********************************************************************************
+//  Solar Wind Concentrator
+//
+//	Based on the Micrometeorite Detector flown on many craft
+//
+//	Part originally created by CobaltWolf as the Mariner 3/4 Cosmic Dust Detector
+//
+//**********************************************************************************
+
+PART
+{
+	name = RO-SolarWindConcentrator
+	module = Part
+	author = wyllowthewisp
+	
+	RSSROConfig = True
+	
+	MODEL
+	{
+		model = RP-1/Parts/Science/Assets/Mariner/bluedog_Mariner_CosmicDustDetector
+	}
+	
+	scale = 1
+	rescaleFactor = 2.4
+	node_attach = 0.0, -0.031112, 0.0, 0.0, -1.0, 0.0
+	TechRequired = sampleReturnScience
+	entryCost = 400
+	cost = 100
+	category = Science
+	subcategory = 0
+	title = SC01 - Solar Wind Concentrator
+	manufacturer = Bluedog Design Bureau
+	description =  a // placeholder
+	attachRules = 0,1,0,0,1
+	mass = 0.020 // Sourced from NASA Space Science Data Coordinated Archive and the Genesis mission spacecraft subsystems page from NASA JPL
+	dragModelType = default
+	maximum_drag = 0.2
+	minimum_drag = 0.2
+	angularDrag = 1
+	crashTolerance = 8
+	maxTemp = 1200 // = 3200
+	PhysicsSignificance = 1
+	bulkheadProfiles = srf
+	
+	tags = science sample return solar wind experiment
+}
