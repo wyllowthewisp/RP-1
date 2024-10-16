@@ -1,0 +1,179 @@
+CONTRACT_TYPE
+{
+	name = GOSpaceTelescopeRepeat
+	title = Launch a space telescope // placeholder
+	group = GreatObservatories
+	agent = Federation Aeronautique Internationale
+	
+	description = <b>Program: Great Observatories<br>Type: <color=blue>Optional</color></b><br><br>Since the launch of the first early-series space telescopes, astronomers have clamored for larger observatories. Launch a large, visible-light space telescope to study the heavens with unprecedented clarity.<br><br><b><color="green">Make sure your craft contains a Space Telescope 2 experiment and has a docking port to allow for future servicing missions.</color></b><br><br>Historical example: Hubble Space Telescope.
+
+	synopsis = 
+
+	completedMessage = 
+
+	
+
+	cancellable = true
+	declinable = false
+	autoAccept = false
+	minExpiry = 0
+	maxExpiry = 0
+	maxCompletions = 6
+	maxSimultaneous = 1
+	deadline = 0
+
+	targetBody = HomeWorld()
+
+	// ************ REWARDS ************
+	prestige = Trivial       // 1.0x
+	advanceFunds = 0
+	rewardScience = 0
+	rewardFunds = 0
+	failureFunds = 0
+	rewardReputation = 120
+	failureReputation = 0 // was @rewardReputation
+
+	// ************ REQUIREMENTS ************
+
+	REQUIREMENT
+	{
+		name = ProgramActive
+		type = ProgramActive
+		program = GreatObservatories
+	}
+
+    REQUIREMENT
+	{
+		name = CompleteContract
+		type = CompleteContract
+  		contractType = GOLargeSpaceTelescope
+		title = Completed Large Space Telescope
+	}
+
+	// ************ DATA ************
+
+	
+
+	// ************ PARAMETERS ************
+
+	PARAMETER
+	{
+		name = SpaceTelescopeBasic
+		type = VesselParameterGroup
+		title = 
+
+		PARAMETER
+		{
+			name = NewVessel
+			type = NewVessel
+			title = Launch a new vessel
+			hideChildren = true
+		}
+  		
+        PARAMETER 
+        {
+            name = Has Docking Port
+            type = PartValidation
+            disableOnStateChange = true
+            
+            VALIDATE
+            {
+                MODULE
+                {
+                    name = ModuleDockingNode
+                }
+            }
+            title = Craft must have a docking port
+        }
+
+		PARAMETER
+		{
+			name = Any
+			type = Any
+			title = Craft must have an Improved Space Telescope or Improved Infrared Space Telescope experiment
+
+			PARAMETER
+			{
+				name = Has Telescope
+				type = PartValidation
+				disableOnStateChange = true
+				
+				VALIDATE
+				{
+					MODULE
+					{
+						name = Experiment
+						experiment_id = RP0BasicSpaceTelescope2
+					}
+				}
+				title = Craft must have an Improved Space Telescope
+			}			
+           
+            PARAMETER
+			{
+				name = Has Telescope
+				type = PartValidation
+				disableOnStateChange = true
+				
+				VALIDATE
+				{
+					MODULE
+					{
+						name = Experiment
+						experiment_id = RP0InfraredSpaceTelescope2
+					}
+				}
+				title = Craft must have an Improved Infrared Space Telescope
+			}
+        }
+
+        PARAMETER
+		{
+			name = Any
+			type = Any
+			title = Bring the spacecraft to your desired orbit
+           
+            PARAMETER
+            {
+                name = OrbitSpaceLow
+                type = Orbit
+                targetBody = HomeWorld()
+                minPeA = 500000
+                maxApA = 35786000 // must be in space low only
+                rewardReputation = 
+                disableOnStateChange = true
+            }
+
+            PARAMETER
+            {
+                name = OrbitSpaceHigh
+                type = Orbit
+                targetBody = HomeWorld()
+                minPeA = 950000 // must stay above Van Allen belts to avoid interference 
+                minApA = 35786000 // must be at least partially in Earth space high
+                rewardReputation = 
+                disableOnStateChange = true
+            }
+
+            PARAMETER
+            {
+                name = OrbitSolar
+                type = Orbit
+                targetBody = Sun
+                rewardReputation = 
+                disableOnStateChange = true
+            }
+        }
+
+        PARAMETER
+        {
+            name = Duration
+            type = Duration
+            duration = 2m
+            preWaitText = Check for stable orbit
+            waitingText = Checking for stable orbit...
+            completionText = Stable orbit: Confirmed
+        }
+   
+	}
+}
