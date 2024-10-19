@@ -162,6 +162,7 @@ CONTRACT_TYPE
                 targetBody = Sun
                 rewardReputation = 
                 disableOnStateChange = true
+				title = 
             }
         }
 
