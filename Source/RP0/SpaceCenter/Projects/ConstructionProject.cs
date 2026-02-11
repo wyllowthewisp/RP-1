@@ -20,11 +20,11 @@ namespace RP0
         [Persistent]
         public bool upgradeProcessed = false;
         [Persistent]
-        public float workRate = 1f;
+        public double workRate = 1d;
 
         private double _buildRate = -1d;
 
-        public double RushMultiplier => workRate > 1f ? Database.SettingsSC.ConstructionRushCost.Evaluate(workRate) : 1d;
+        public double RushMultiplier => workRate > 1d ? Database.SettingsSC.ConstructionRushCost.Evaluate(workRate) : 1d;
 
         public double RemainingCost => -CurrencyUtils.Funds(
             FacilityType == SpaceCenterFacility.LaunchPad ? TransactionReasonsRP0.StructureConstructionLC : TransactionReasonsRP0.StructureConstruction,
@@ -57,7 +57,13 @@ namespace RP0
 
         public virtual string GetItemName() => name;
         public double GetFractionComplete() => progress / BP;
-        public double GetTimeLeft() => (BP - progress) / GetBuildRate();
+
+        public double GetTimeLeft()
+        {
+            double br = GetBuildRate();
+            return br > 0 ? (BP - progress) / br : double.PositiveInfinity;
+        }
+
         public double GetTimeLeftEst(double offset) => GetTimeLeft();
         public ProjectType GetProjectType() => ProjectType.KSC;
         public bool IsComplete() => progress >= BP;
