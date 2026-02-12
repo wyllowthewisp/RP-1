@@ -115,7 +115,7 @@ CONTRACT_TYPE
 				name = CoolantResupply
 				type = HasResource
 				title = Bring at least @/coolantSpace liquid helium coolant
-				genericTitle = Bring enough liquid helium coolant to refill the tanks
+				// genericTitle = Bring enough liquid helium coolant to refill the tanks
 				resource = LqdHelium
 				minQuantity = @/coolantSpace
 				hideChildren = true
