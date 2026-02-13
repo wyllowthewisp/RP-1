@@ -1,13 +1,13 @@
 CONTRACT_TYPE
 {
 	name = EOSFirstSpaceTelescope
-	title = First Space Telescope
-	group = EOS
+	title = Orbiting Astronomical Observatory
+	group = GreatObservatories // placeholder
 	agent = Federation Aeronautique Internationale
 	
-	description = <b>Program: Early Earth Observation Satellites<br>Type: <color=green>Required</color></b><br><br>Astronomers have long dreamed of somehow placing a telescope above Earth's turbulent, often-cloudy atmosphere. Launch the first space telescope to Earth orbit to make it a reality.<br><br><b><color="green">Make sure your craft contains a Space Telescope 1 experiment and produces enough electricity to power it.</color></b><br><br>Historical example: the Orbiting Astronomical Observatory series.
+	description = <b>Program: Early Earth Observation Satellites<br>Type: <color=green>Required</color></b><br><br>Astronomers have long dreamed of somehow placing a telescope above Earth's turbulent, often-cloudy atmosphere. Launch the first space telescope to Earth orbit to make it a reality.<br><br><b><color="green">Make sure your craft contains a Space Telescope 1 experiment and produces enough electricity to power it.</color></b><br><br>Historical example: OAO-2, aka Stargazer.
 
-	synopsis = Launch the first space telescope, and return the first 30 days of science data.
+	synopsis = Launch the first space telescope, and return 30 days of science data.
 
 	completedMessage = Well done! Scientists everywhere are racing to study the first UV observations from above the atmosphere.
 
@@ -67,15 +67,6 @@ CONTRACT_TYPE
 			minCrew = 0
 			maxCrew = 0
 			title = Uncrewed
-			hideChildren = true
-		}
-
-		PARAMETER 
-		{
-			name = Space Telecope Mass
-			type = VesselMass
-			minMass = 2
-			title = Space telescope must mass at least 2,000 kg
 			hideChildren = true
 		}
 
