@@ -4,6 +4,7 @@ using UniLinq;
 using UnityEngine;
 using ROUtils.DataTypes;
 using ROUtils;
+using RP0.ModIntegrations;
 
 namespace RP0
 {
@@ -202,9 +203,11 @@ namespace RP0
                 GUILayout.Label(locTxt, _windowSkin.label);
                 GUILayout.Label(RP0DTUtils.GetColonFormattedTimeWithTooltip(buildItem.GetTimeLeft(), txt+locTxt+buildItem.GetItemName()));
 
-                if (!HighLogic.LoadedSceneIsEditor && TimeWarp.CurrentRateIndex == 0 && GUILayout.Button(new GUIContent($"Warp to{Environment.NewLine}Complete", $"√ Gain/Loss:\n{SpaceCenterManagement.Instance.GetBudgetDelta(buildItem.GetTimeLeft()):N0}")))
+                if (!HighLogic.LoadedSceneIsEditor && TimeWarp.CurrentRateIndex == 0)
                 {
-                    KCTWarpController.Create(null); // warp to next item
+                    string tooltip = buildItem.GetTimeLeft() > 86400d * 365.25 * 5 ? null : $"√ Gain/Loss:\n{(SpaceCenterManagement.Instance.GetBudgetDelta(buildItem.GetTimeLeft())):N0}";
+                    if (GUILayout.Button(new GUIContent($"Warp to{Environment.NewLine}Complete", tooltip)))
+                        KCTWarpController.Create(null); // warp to next item
                 }
                 else if (!HighLogic.LoadedSceneIsEditor && TimeWarp.CurrentRateIndex > 0 && GUILayout.Button($"Stop{Environment.NewLine}Warp"))
                 {
@@ -212,27 +215,25 @@ namespace RP0
                     TimeWarp.SetRate(0, true);  // If the controller doesn't exist, stop warp anyway.
                 }
 
-                if (KCTSettings.Instance.AutoKACAlarms && KACWrapper.APIReady && buildItem.GetTimeLeft() > 30)    //don't check if less than 30 seconds to completion. Might fix errors people are seeing
+                if (KCTSettings.Instance.AutoAlarms && buildItem.GetTimeLeft() > 30)    //don't check if less than 30 seconds to completion. Might fix errors people are seeing
                 {
                     double UT = Planetarium.GetUniversalTime();
-                    if (!KCTUtilities.IsApproximatelyEqual(SpaceCenterManagement.Instance.KACAlarmUT - UT, buildItem.GetTimeLeft()))
+                    if (!KCTUtilities.IsApproximatelyEqual(SpaceCenterManagement.Instance.AlarmUT - UT, buildItem.GetTimeLeft()))
                     {
-                        RP0Debug.Log("KAC Alarm being created!");
-                        SpaceCenterManagement.Instance.KACAlarmUT = buildItem.GetTimeLeft() + UT;
-                        KACWrapper.KACAPI.KACAlarm alarm = KACWrapper.KAC.Alarms.FirstOrDefault(a => a.ID == SpaceCenterManagement.Instance.KACAlarmId);
-                        if (alarm == null)
-                        {
-                            alarm = KACWrapper.KAC.Alarms.FirstOrDefault(a => a.Name.StartsWith("RP-1: "));
-                        }
-                        if (alarm != null)
-                        {
-                            RP0Debug.Log("Removing existing alarm");
-                            KACWrapper.KAC.DeleteAlarm(alarm.ID);
-                        }
+                        // old alarm, need to delete to get the new alarm for the new buildItem
+                        SpaceCenterManagement.Instance.AlarmUT = buildItem.GetTimeLeft() + UT;
                         txt = "RP-1: ";
-                        if (buildItem.GetProjectType() == ProjectType.Reconditioning)
+                        if (string.IsNullOrEmpty(SpaceCenterManagement.Instance.AlarmId) || (!AlarmHelper.DeleteAlarmWithID(SpaceCenterManagement.Instance.AlarmId) && !AlarmHelper.DeleteAllAlarmsWithTitle(txt, true)))
                         {
-                            ReconRolloutProject reconRoll = buildItem as ReconRolloutProject;
+                            RP0Debug.Log("No old alarm found, new alarm being created!");
+                        }
+                        else
+                        {
+                            RP0Debug.Log("Old alarm deleted, new alarm being created!");
+                        }
+
+                        if (buildItem.GetProjectType() == ProjectType.Reconditioning && buildItem is ReconRolloutProject reconRoll)
+                        {
                             if (reconRoll.RRType == ReconRolloutProject.RolloutReconType.Reconditioning)
                             {
                                 txt += $"{reconRoll.launchPadID} Reconditioning";
@@ -253,9 +254,13 @@ namespace RP0
                             }
                         }
                         else
+                        {
                             txt += $"{buildItem.GetItemName()} Complete";
-                        SpaceCenterManagement.Instance.KACAlarmId = KACWrapper.KAC.CreateAlarm(KACWrapper.KACAPI.AlarmTypeEnum.Raw, txt, SpaceCenterManagement.Instance.KACAlarmUT);
-                        RP0Debug.Log($"Alarm created with ID: {SpaceCenterManagement.Instance.KACAlarmId}");
+                        }
+                        KACWrapper.KACAPI.AlarmTypeEnum alarmType = KACWrapper.KACAPI.AlarmTypeEnum.Raw;
+                        if (buildItem.GetProjectType() == ProjectType.Crew) alarmType = KACWrapper.KACAPI.AlarmTypeEnum.Crew; // TODO, get the specific crew member being trained?
+                        else if (buildItem.GetProjectType() == ProjectType.TechNode) alarmType = KACWrapper.KACAPI.AlarmTypeEnum.ScienceLab;
+                        SpaceCenterManagement.Instance.AlarmId = AlarmHelper.CreateAlarm(txt, "", SpaceCenterManagement.Instance.AlarmUT, alarmType);
                     }
                 }
             }
@@ -430,7 +435,7 @@ namespace RP0
                 GUILayout.Label("     Work rate:", GUILayout.Width(90));
                 GUILayout.Label(new GUIContent(constr.workRate.ToString("P0"), $"rate{identifier}¶Daily cost multiplier: {constr.RushMultiplier:P0}"), GetLabelRightAlignStyle(), GUILayout.Width(40));
                 
-                float newWorkRate = GUILayout.HorizontalSlider(constr.workRate, 0f, 1.5f, GUILayout.Width(150));
+                float newWorkRate = GUILayout.HorizontalSlider((float)constr.workRate, 0f, 1.5f, GUILayout.Width(150));
                 constr.workRate = Mathf.RoundToInt(newWorkRate * 20f) * 0.05f;
 
                 GUILayout.Label("Remaining Cost:", GUILayout.Width(100));
@@ -1223,8 +1228,16 @@ namespace RP0
                             {
                                 if (meetsChecks)
                                 {
-                                    b.launchSiteIndex = vesselLC.LaunchPads.IndexOf(foundPad);
-                                    vesselLC.Recon_Rollout.Add(tmpRollout);
+                                    bool padClear = !foundPad.HasVesselWaitingToBeLaunched(out Vessel foundVessel);
+                                    if (padClear)
+                                    {
+                                        b.launchSiteIndex = vesselLC.LaunchPads.IndexOf(foundPad);
+                                        vesselLC.Recon_Rollout.Add(tmpRollout);
+                                    }
+                                    else
+                                    {
+                                        PopupDialog.SpawnPopupDialog(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), "cannotRollOutVesselOnPad", "Cannot Roll out!", $"{foundVessel.vesselName} is already waiting on the launch pad.", "Acknowledged", false, HighLogic.UISkin).HideGUIsWhilePopup();
+                                    }
                                 }
                                 else
                                 {
