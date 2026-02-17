@@ -721,8 +721,12 @@ namespace RP0
             return intact;
         }
 
+        /// <remarks>
+        /// Do not pass in an error value greater than or equal to 1. (100%)
+        /// </remarks>
         public static bool IsApproximatelyEqual(double d1, double d2, double error = 0.01)
         {
+            if (error >= 1) error = 0.01;
             return (1 - error) <= (d1 / d2) && (d1 / d2) <= (1 + error);
         }
 
@@ -923,15 +927,16 @@ namespace RP0
                 if (!SpaceCenterManagement.Instance.IsLaunchSiteControllerDisabled)
                 {
                     SpaceCenterManagement.Instance.IsLaunchSiteControllerDisabled = true;
-                    UILaunchsiteController controller = UnityEngine.Object.FindObjectOfType<UILaunchsiteController>();
-                    if (controller == null)
+                    var arr = Resources.FindObjectsOfTypeAll(typeof(UILaunchsiteController));    // Apparently this version of Unity has no saner way for including gameobjects that are disabled
+                    var uiObj = arr.FirstOrDefault(obj => obj is UILaunchsiteController c && c.gameObject.scene.IsValid());    // Leave the innocent UI prefab alone
+                    if (uiObj == null)
                     {
                         RP0Debug.Log("UILaunchsiteController is null");
                     }
                     else
                     {
                         RP0Debug.Log("Killing UILaunchsiteController");
-                        UnityEngine.Object.Destroy(controller);
+                        UnityEngine.Object.Destroy(uiObj);
                     }
                 }
             }
@@ -1356,7 +1361,7 @@ namespace RP0
         {
             currentLC.Engineers += delta;
             SCMEvents.OnPersonnelChange.Fire();
-            MaintenanceHandler.Instance.ScheduleMaintenanceUpdate();
+            MaintenanceHandler.Instance?.ScheduleMaintenanceUpdate();
             currentLC.RecalculateBuildRates();
             KCT_GUI.BuildRateForDisplay = null;
         }
@@ -1365,7 +1370,7 @@ namespace RP0
         {
             ksc.Engineers += delta;
             SCMEvents.OnPersonnelChange.Fire();
-            MaintenanceHandler.Instance.ScheduleMaintenanceUpdate();
+            MaintenanceHandler.Instance?.ScheduleMaintenanceUpdate();
         }
 
         public static void ChangeResearchers(int delta)
