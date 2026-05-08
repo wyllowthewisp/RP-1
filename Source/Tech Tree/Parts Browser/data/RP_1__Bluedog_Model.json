@@ -509,6 +509,29 @@
         ]
     },
     {
+        "name": "RO-SolarWindConcentrator",
+        "title": "SC01 - Solar Wind Concentrator",
+        "description": "The solar wind concentrator is designed to concentrate, collect, and trap charged particles from the solar wind, using a bulk solar wind collector array, several specialized collector arrays, and an ion concentrator. The historical basis for this instrument is the science canister on NASA's Genesis spacecraft.",
+        "mod": "RP-1 (Bluedog Model)",
+        "cost": "3500",
+        "entry_cost": "8000",
+        "category": "SCIENCE",
+        "info": "Solar Wind Concentrator",
+        "year": "1986",
+        "technology": "sampleReturnScience",
+        "ro": true,
+        "orphan": false,
+        "rp0_conf": true,
+        "spacecraft": "",
+        "engine_config": "",
+        "upgrade": false,
+        "entry_cost_mods": "",
+        "identical_part_name": "",
+        "module_tags": [
+            "Instruments"
+        ]
+    },
+    {
         "name": "RO-TwoChannelIR",
         "title": "IR03 - Two-Channel Infrared Radiometer",
         "description": "",
